@@ -1,14 +1,16 @@
 <template>
   <div>
-    <q-btn>Adauga</q-btn>
-    <q-btn v-on:click="addObjective()" color="green">Salveaza</q-btn>
-    <q-input v-model="titleInput" label="Titlu" />
-    <q-input v-model="urlPhoto" label="Poza" />
-    <q-select v-model="selectedCity" :options="filteredCities" label="Standard" />
-    <q-img
-      style="border-radius: 10px; width: 10em; height: 6em"
-      src="https://picsum.photos/200/300"
-    />
+    <q-btn @click="addObj = true" push>Adauga</q-btn>
+    <q-dialog v-model="addObj">
+      <q-card>
+        <q-btn v-on:click="addObjective" color="green">Salveaza</q-btn>
+        <q-input v-model="titleInput" label="Titlu" />
+        <q-input v-model="urlPhoto" label="Poza" />
+        <q-select v-model="selectedCity" :options="filteredCities" label="Standard" />
+      </q-card>
+    </q-dialog>
+    <p><b>Obiective</b></p>
+
     <div v-for="(objective, index) in objectives" v-bind:key="index">
       <q-btn v-on:click="removeObjective(index)" color="red">Sterge</q-btn>
       <q-btn v-on:click="updateObjective(objective)" color="blue">Salveaza</q-btn>
@@ -43,6 +45,7 @@ export default {
   name: "MainPage",
   data() {
     return {
+      addObj: false,
       id: 0,
       checkbox: false,
       urlPhoto: "",
@@ -58,9 +61,9 @@ export default {
     addObjective() {
       //add to local storage the new objective as an object with strigified data
       //check if local storage exists
-      let lastId = 0
+      let lastId = 0;
       if (this.objectives.length > 0) {
-         lastId = this.objectives[this.objectives.length - 1].id + 1;
+        lastId = this.objectives[this.objectives.length - 1].id + 1;
       }
       let newObjective = {
         id: lastId,
@@ -76,7 +79,9 @@ export default {
       console.log("addObjective");
     },
     updateObjective(newObjective) {
-      let toUpdateObjective = this.objectives.find((objective) => objective.id == newObjective.id);
+      let toUpdateObjective = this.objectives.find(
+        (objective) => objective.id == newObjective.id
+      );
       toUpdateObjective = newObjective;
       LocalStorage.set("objectives", this.objectives);
     },
@@ -119,4 +124,9 @@ export default {
 };
 </script>
 
-<style></style>
+<style lang="scss" scoped>
+.my-card {
+  width: 100%;
+  max-width: 760px;
+}
+</style>
