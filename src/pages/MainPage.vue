@@ -2,30 +2,51 @@
   <div class="my-card">
     <q-btn @click="addObj = true" push>Adauga</q-btn>
     <q-dialog v-model="addObj">
-      <q-card >
-        <q-btn v-on:click="addObjective" color="green">Salveaza</q-btn>
-        <q-input v-model="titleInput" label="Titlu" />
-        <q-input v-model="urlPhoto" label="Poza" />
-        <q-select v-model="selectedCity" :options="filteredCities" label="Standard" />
+      <div class="my-popup">
+      <q-card>
+        <q-btn style="margin:15px" v-on:click="addObjective" color="green">Salveaza</q-btn>
+        <q-input style="margin:0px 15px" v-model="titleInput" label="Titlu" />
+        <q-input style="margin:0px 15px" v-model="urlPhoto" label="Poza" />
+        <q-select style="margin:0px 15px" v-model="selectedCity" :options="filteredCities" label="Oras" />
       </q-card>
+      </div>
     </q-dialog>
-    <p><b>Obiective</b></p>
-        <q-select v-model="selectedSort" :options="filteredCities" label="Sorteaza dupa rating" />
-        <!-- <q-select v-model="selectedCity" :options="filteredCities" label="Filtreaza dupa oras" /> -->
-        <!-- <q-select v-model="selectedCity" :options="filteredCities" label="Filtreaza dupa oras" /> -->
+    <h5 style="margin-top: 15px"><b>Obiective</b></h5>
+    <div style="margin-bottom: 50px" class="row">
+      <div class="col">
+        <q-select
+          @update:model-value="sortObjectives"
+          v-model="selectedSort"
+          :options="sortOptions"
+          label="Sorteaza dupa"
+        />
+      </div>
 
+      <div class="col">
+        <q-select
+          v-model="selectedCityFilter"
+          :options="citiesResponseFilterOptions"
+          label="Filtreaza dupa oras"
+        />
+      </div>
+    </div>
+    <div
+      class="my-row"
+      v-for="(objective, index) in filterObjectivesByCity"
+      v-bind:key="index"
+    >
+      <q-img
+        style="border-radius: 10px; width: 10em; height: 6em"
+        :src="objective.urlPhoto"
+      >
+      <q-popup-edit v-model="objective.urlPhoto" auto-save v-slot="scope">
+        <q-input v-model="scope.value" dense autofocus counter @keyup.enter="scope.set" />
+      </q-popup-edit>
+      </q-img>
 
-    <div v-for="(objective, index) in objectives" v-bind:key="index">
-      <q-btn v-on:click="removeObjective(index)" color="red">Sterge</q-btn>
-      <q-btn v-on:click="updateObjective(objective)" color="blue">Salveaza</q-btn>
-      <!-- <q-btn v-on:click="updateObjective(objective.id,objective.title,objective.)" color="blue">Salveaza</q-btn> -->
 
       <q-input v-model="objective.title" label="Titlu" />
-      <q-select
-        v-model="objective.selectedCity"
-        :options="filteredCities"
-        label="Standard"
-      />
+      <q-select v-model="objective.selectedCity" :options="filteredCities" label="Oras" />
       <q-checkbox label="Vizitat" v-model="objective.checkbox" />
       <q-rating
         v-model="objective.rating"
@@ -34,10 +55,9 @@
         color="green-5"
         :icon="icons"
       />
-      <q-img
-        style="border-radius: 10px; width: 10em; height: 6em"
-        src="https://picsum.photos/200/300"
-      />
+
+      <q-btn v-on:click="removeObjective(index)" style="margin-left:50px" color="red">Sterge</q-btn>
+      <q-btn v-on:click="updateObjective(objective)" style="margin-left:10px" color="blue">Salveaza</q-btn>
     </div>
   </div>
 </template>
@@ -55,16 +75,18 @@ export default {
       urlPhoto: "",
       titleInput: "",
       citiesResponse: null,
+      citiesResponseFilterOptions: null,
       rating: 0,
       message: "",
       selectedCity: "",
       objectives: LocalStorage.getItem("objectives") || [],
+      selectedCityFilter: "Selecteaza oras",
+      selectedSort: "Nou",
+      sortOptions: ["Nou", "Vechi", "Rating Mare", "Rating Mic"],
     };
   },
   methods: {
     addObjective() {
-      //add to local storage the new objective as an object with strigified data
-      //check if local storage exists
       let lastId = 0;
       if (this.objectives.length > 0) {
         lastId = this.objectives[this.objectives.length - 1].id + 1;
@@ -79,7 +101,10 @@ export default {
       };
       this.objectives.push(newObjective);
       LocalStorage.set("objectives", this.objectives);
-
+      this.titleInput = "";
+      this.urlPhoto = "";
+      this.selectedCity = "";
+      this.addObj = false;
       console.log("addObjective");
     },
     updateObjective(newObjective) {
@@ -94,6 +119,30 @@ export default {
       LocalStorage.set("objectives", this.objectives);
       console.log("removeObjective");
     },
+    sortObjectives(selectedSort) {
+      switch (selectedSort) {
+        case "Nou":
+          this.objectives.sort((first, second) => {
+            return first.id < second.id ? 1 : -1;
+          });
+          break;
+        case "Vechi":
+          this.objectives.sort((first, second) => {
+            return first.id > second.id ? 1 : -1;
+          });
+          break;
+        case "Rating Mare":
+          this.objectives.sort((first, second) => {
+            return first.rating < second.rating ? 1 : -1;
+          });
+          break;
+        case "Rating Mic":
+          this.objectives.sort((first, second) => {
+            return first.rating > second.rating ? 1 : -1;
+          });
+          break;
+      }
+    },
   },
   mounted() {
     let romanianCountries =
@@ -107,22 +156,33 @@ export default {
 
     axios.post(romanianCountries, postData).then((response) => {
       this.citiesResponse = response.data;
+      this.citiesResponseFilterOptions = ["Selecteaza oras"];
+      this.citiesResponse.data.forEach((city) => {
+        this.citiesResponseFilterOptions.push(city.city);
+      });
     });
   },
   computed: {
-
     filteredCities: function () {
       if (this.citiesResponse) {
         return this.citiesResponse.data.map((element) => {
           return element.city;
         });
-        return this.cities;
       }
       return ["Bucuresti", "Cluj", "Iasi", "Timisoara"];
     },
+    filterObjectivesByCity() {
+      if (this.selectedCityFilter == "Selecteaza oras") {
+        return this.objectives;
+      }
+      return this.objectives.filter((objective) => {
+        return (
+          objective.selectedCity.toLowerCase() == this.selectedCityFilter.toLowerCase()
+        );
+      });
+    },
     objectivesComputed: function () {
       var x = LocalStorage.getItem("objectives") || [];
-      var y = x;
       return x;
     },
   },
@@ -130,9 +190,19 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.my-row {
+  margin-top: 20px;
+}
+.my-popup {
+  width:100%;
+  padding:30px;
+  border-radius:10px;
+  background-color: white;
+}
 .my-card {
   margin: 50px auto 50px;
   width: 100%;
+
   max-width: 760px;
   box-shadow: 0px 0px 3px grey;
   border-radius: 1%;
