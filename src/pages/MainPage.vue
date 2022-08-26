@@ -1,13 +1,14 @@
 <template>
   <div class="my-card">
-    <q-btn @click="addObj = true" push>Adauga</q-btn>
+    <q-btn @click="addObj = true" push>Adauga Obiectiv</q-btn>
     <q-dialog v-model="addObj">
       <div class="my-popup">
       <q-card>
-        <q-btn style="margin:15px" v-on:click="addObjective" color="green">Salveaza</q-btn>
+        <h6 style="margin:0px 0px 0px 15px">Obiectiv</h6>
         <q-input style="margin:0px 15px" v-model="titleInput" label="Titlu" />
         <q-input style="margin:0px 15px" v-model="urlPhoto" label="Poza" />
         <q-select style="margin:0px 15px" v-model="selectedCity" :options="filteredCities" label="Oras" />
+        <q-btn style="margin:15px" v-on:click="addObjective" color="green">Salveaza</q-btn>
       </q-card>
       </div>
     </q-dialog>
