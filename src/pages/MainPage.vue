@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div class="my-card">
     <q-btn @click="addObj = true" push>Adauga</q-btn>
     <q-dialog v-model="addObj">
-      <q-card>
+      <q-card >
         <q-btn v-on:click="addObjective" color="green">Salveaza</q-btn>
         <q-input v-model="titleInput" label="Titlu" />
         <q-input v-model="urlPhoto" label="Poza" />
@@ -10,6 +10,10 @@
       </q-card>
     </q-dialog>
     <p><b>Obiective</b></p>
+        <q-select v-model="selectedSort" :options="filteredCities" label="Sorteaza dupa rating" />
+        <!-- <q-select v-model="selectedCity" :options="filteredCities" label="Filtreaza dupa oras" /> -->
+        <!-- <q-select v-model="selectedCity" :options="filteredCities" label="Filtreaza dupa oras" /> -->
+
 
     <div v-for="(objective, index) in objectives" v-bind:key="index">
       <q-btn v-on:click="removeObjective(index)" color="red">Sterge</q-btn>
@@ -106,6 +110,7 @@ export default {
     });
   },
   computed: {
+
     filteredCities: function () {
       if (this.citiesResponse) {
         return this.citiesResponse.data.map((element) => {
@@ -126,7 +131,11 @@ export default {
 
 <style lang="scss" scoped>
 .my-card {
+  margin: 50px auto 50px;
   width: 100%;
   max-width: 760px;
+  box-shadow: 0px 0px 3px grey;
+  border-radius: 1%;
+  padding: 1rem;
 }
 </style>
